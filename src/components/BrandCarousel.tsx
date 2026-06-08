@@ -21,6 +21,7 @@ export default function BrandCarousel() {
         scrollTrigger: {
           trigger: "#collabs",
           start: "top 80%",
+          once: true,
         },
       });
     });

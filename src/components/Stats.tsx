@@ -30,6 +30,7 @@ export default function Stats() {
         scrollTrigger: {
           trigger: "#stats",
           start: "top 78%",
+          once: true,
         },
       });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { siteData } from "@/data/content";
@@ -60,6 +60,8 @@ function VideoCard({
   onPlay,
   onStop,
 }: VideoCardProps) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [shouldLoadVideo, setShouldLoadVideo] = useState(false);
   const isPlaceholder = Boolean(embedUrl && embedUrl.startsWith("PLACEHOLDER"));
   const fallbackEmbedUrl = tiktokUrl ? getTikTokEmbedUrl(tiktokUrl) : null;
   const resolvedEmbedUrl = isPlaceholder
@@ -77,15 +79,43 @@ function VideoCard({
 
   const showPreview = !isPlaying;
 
+  useEffect(() => {
+    if (!videoSrc || shouldLoadVideo || typeof IntersectionObserver === "undefined") {
+      return;
+    }
+
+    const element = videoRef.current;
+    if (!element) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+
+        if (entry?.isIntersecting) {
+          setShouldLoadVideo(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "180px 0px" },
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [shouldLoadVideo, videoSrc]);
+
   return (
     <article className="group min-w-[270px] max-w-[320px] flex-1 rounded-3xl border border-border/90 bg-gradient-to-b from-[#14142a] via-surface to-[#0a0a14] p-2.5 shadow-[0_18px_55px_rgba(0,0,0,0.42)] transition-all duration-300 hover:-translate-y-1.5 hover:border-accent/50 md:min-w-0 md:max-w-none">
       <div className="relative aspect-[9/15] overflow-hidden rounded-2xl border border-white/5 bg-black/60">
         {videoSrc ? (
           <video
-            src={videoSrc}
+            ref={videoRef}
+            src={shouldLoadVideo ? videoSrc : undefined}
             controls
             playsInline
-            preload="metadata"
+            preload={shouldLoadVideo ? "metadata" : "none"}
             className="h-full w-full object-cover"
           />
         ) : showPreview ? (
@@ -191,6 +221,7 @@ export default function Videos() {
         scrollTrigger: {
           trigger: "#videos",
           start: "top 80%",
+          once: true,
         },
       });
 
@@ -203,6 +234,7 @@ export default function Videos() {
         scrollTrigger: {
           trigger: "#videos",
           start: "top 78%",
+          once: true,
         },
       });
     });

@@ -19,6 +19,8 @@ export default function About() {
   );
 
   useEffect(() => {
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
     const ctx = gsap.context(() => {
       gsap.from("[data-about='photo']", {
         x: -60,
@@ -28,6 +30,7 @@ export default function About() {
         scrollTrigger: {
           trigger: "#about",
           start: "top 75%",
+          once: true,
         },
       });
 
@@ -39,8 +42,13 @@ export default function About() {
         scrollTrigger: {
           trigger: "#about",
           start: "top 75%",
+          once: true,
         },
       });
+
+      if (reduceMotion) {
+        return;
+      }
 
       gsap.to("[data-about='photo']", {
         y: -8,
